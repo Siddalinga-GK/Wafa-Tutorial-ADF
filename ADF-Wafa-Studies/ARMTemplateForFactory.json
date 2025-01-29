@@ -1,0 +1,1006 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "ADF-Wafa-Studies"
+		},
+		"LS_Wafa_Studies_Tutorial_01_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'LS_Wafa_Studies_Tutorial_01'"
+		},
+		"LS_Wafa_Studies_Tutorial_01_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sawafastudies.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/01-Copy_activity')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Name",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Name",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Dept",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Dept",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Age",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Age",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Gender",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Gender",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "Source_DS_02",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Target_DS_02",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-01-28T16:07:27Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Source_DS_02')]",
+				"[concat(variables('factoryId'), '/datasets/Target_DS_02')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/02-Dataflow_Agg')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "AggData",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "02_Agg_Filter",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"EmpData": {},
+									"TotalEMP": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-01-28T11:02:46Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/02_Agg_Filter')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/03-Pivot')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Pivot",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "03_Pivot",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"Emp": {},
+									"Target": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-01-28T13:28:03Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/03_Pivot')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/For Each Loop')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.ListofFiles",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "Source_DS_02",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "Target_DS_03",
+											"type": "DatasetReference",
+											"parameters": {
+												"FilePath": {
+													"value": "@item()",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"ListofFiles": {
+						"type": "array",
+						"defaultValue": [
+							"output1",
+							"output2",
+							"output3"
+						]
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-01-28T16:07:27Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Source_DS_02')]",
+				"[concat(variables('factoryId'), '/datasets/Target_DS_03')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Power1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Power Query1",
+						"type": "ExecuteWranglingDataflow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "powerquery1",
+								"type": "DataFlowReference",
+								"datasetParameters": {
+									"Source_DS_02": {},
+									"UserQueryTargetDS02": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"queries": [
+								{
+									"queryName": "UserQuery",
+									"dataflowSinks": [
+										{
+											"name": "UserQueryTargetDS02",
+											"dataset": {
+												"referenceName": "Target_DS_02",
+												"type": "DatasetReference",
+												"parameters": {}
+											},
+											"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> UserQueryTargetDS02"
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-01-28T16:26:13Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/powerquery1')]",
+				"[concat(variables('factoryId'), '/datasets/Target_DS_02')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Employee.csv",
+						"fileSystem": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "empid",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "country",
+						"type": "String"
+					},
+					{
+						"name": "deptid",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DeptDataset01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Department.csv",
+						"fileSystem": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "deptid",
+						"type": "String"
+					},
+					{
+						"name": "deptname",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/EmpDeptDataSet01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "output"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Source_DS_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Source_Data.txt",
+						"fileSystem": "input"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Source_DS_02')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Employee.csv",
+						"fileSystem": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "empid",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "country",
+						"type": "String"
+					},
+					{
+						"name": "deptid",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Source_DS_03')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Employee2.csv",
+						"fileSystem": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "empid",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "gender",
+						"type": "String"
+					},
+					{
+						"name": "country",
+						"type": "String"
+					},
+					{
+						"name": "deptid",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Target_DS_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "output"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Target_DS_02')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "output"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Target_DS_03')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FilePath": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@dataset().FilePath",
+							"type": "Expression"
+						},
+						"fileSystem": "output"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Target_DS_04')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "output"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_Wafa_Studies_Tutorial_01')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_Wafa_Studies_Tutorial_01_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('LS_Wafa_Studies_Tutorial_01_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/01_Join')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DelimitedText1",
+								"type": "DatasetReference"
+							},
+							"name": "EmpData"
+						},
+						{
+							"dataset": {
+								"referenceName": "DeptDataset01",
+								"type": "DatasetReference"
+							},
+							"name": "DeptData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "EmpDeptDataSet01",
+								"type": "DatasetReference"
+							},
+							"name": "EmpdeptData"
+						}
+					],
+					"transformations": [
+						{
+							"name": "EmpDeptJoin"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          empid as string,",
+						"          name as string,",
+						"          country as string,",
+						"          deptid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> EmpData",
+						"source(output(",
+						"          deptid as string,",
+						"          deptname as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> DeptData",
+						"EmpData, DeptData join(EmpData@deptid == DeptData@deptid,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> EmpDeptJoin",
+						"EmpDeptJoin sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['EmpDept'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          empid,",
+						"          name,",
+						"          country,",
+						"          deptname",
+						"     ),",
+						"     partitionBy('hash', 1)) ~> EmpdeptData"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DelimitedText1')]",
+				"[concat(variables('factoryId'), '/datasets/DeptDataset01')]",
+				"[concat(variables('factoryId'), '/datasets/EmpDeptDataSet01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/02_Agg_Filter')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Source_DS_03",
+								"type": "DatasetReference"
+							},
+							"name": "EmpData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Target_DS_04",
+								"type": "DatasetReference"
+							},
+							"name": "TotalEMP"
+						}
+					],
+					"transformations": [
+						{
+							"name": "TotalEmpbyDept"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          empid as string,",
+						"          name as string,",
+						"          gender as string,",
+						"          country as string,",
+						"          deptid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> EmpData",
+						"EmpData aggregate(groupBy(deptid),",
+						"     empid = count(empid)) ~> TotalEmpbyDept",
+						"TotalEmpbyDept sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['Totalempbydept'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          Dept_ID = deptid,",
+						"          Total_Employees = empid",
+						"     ),",
+						"     partitionBy('hash', 1)) ~> TotalEMP"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Source_DS_03')]",
+				"[concat(variables('factoryId'), '/datasets/Target_DS_04')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/03_Pivot')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Source_DS_03",
+								"type": "DatasetReference"
+							},
+							"name": "Emp"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Target_DS_02",
+								"type": "DatasetReference"
+							},
+							"name": "Target"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Gender"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          empid as string,",
+						"          name as string,",
+						"          gender as string,",
+						"          country as string,",
+						"          deptid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> Emp",
+						"Emp pivot(groupBy(deptid),",
+						"     pivotBy(gender),",
+						"     {} = count(empid),",
+						"     columnNaming: '$N$V',",
+						"     lateral: true) ~> Gender",
+						"Gender sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['Pivot_Gender'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> Target"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Source_DS_03')]",
+				"[concat(variables('factoryId'), '/datasets/Target_DS_02')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/powerquery1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "WranglingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"name": "Source_DS_02",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Source_DS_02",
+							"dataset": {
+								"referenceName": "Source_DS_02",
+								"type": "DatasetReference"
+							}
+						}
+					],
+					"script": "section Section1;\r\nshared Source_DS_02 = let AdfDoc = AzureStorage.DataLakeContents(\"https://sawafastudies.dfs.core.windows.net/input/Employee.csv\"),Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]), PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]),\r\n  #\"Removed columns\" = Table.RemoveColumns(PromotedHeaders, {\"deptid\"}) in  #\"Removed columns\";\r\nshared UserQuery = let Source = #\"Source_DS_02\" in Source;\r\n",
+					"documentLocale": "en-us"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Source_DS_02')]"
+			]
+		}
+	]
+}
