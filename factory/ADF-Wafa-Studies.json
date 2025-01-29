@@ -1,0 +1,9 @@
+{
+	"name": "ADF-Wafa-Studies",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "0c0f1d8f-7424-4021-a17b-c80306b4d3a8",
+		"tenantId": "585d6704-e8ff-46af-9773-63c33df7cf26"
+	}
+}

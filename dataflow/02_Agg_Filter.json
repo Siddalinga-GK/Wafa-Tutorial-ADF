@@ -1,0 +1,58 @@
+{
+	"name": "02_Agg_Filter",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Source_DS_03",
+						"type": "DatasetReference"
+					},
+					"name": "EmpData"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Target_DS_04",
+						"type": "DatasetReference"
+					},
+					"name": "TotalEMP"
+				}
+			],
+			"transformations": [
+				{
+					"name": "TotalEmpbyDept"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          empid as string,",
+				"          name as string,",
+				"          gender as string,",
+				"          country as string,",
+				"          deptid as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> EmpData",
+				"EmpData aggregate(groupBy(deptid),",
+				"     empid = count(empid)) ~> TotalEmpbyDept",
+				"TotalEmpbyDept sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Totalempbydept'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          Dept_ID = deptid,",
+				"          Total_Employees = empid",
+				"     ),",
+				"     partitionBy('hash', 1)) ~> TotalEMP"
+			]
+		}
+	}
+}

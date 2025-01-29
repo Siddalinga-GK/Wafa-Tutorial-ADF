@@ -1,0 +1,57 @@
+{
+	"name": "03_Pivot",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Source_DS_03",
+						"type": "DatasetReference"
+					},
+					"name": "Emp"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Target_DS_02",
+						"type": "DatasetReference"
+					},
+					"name": "Target"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Gender"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          empid as string,",
+				"          name as string,",
+				"          gender as string,",
+				"          country as string,",
+				"          deptid as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Emp",
+				"Emp pivot(groupBy(deptid),",
+				"     pivotBy(gender),",
+				"     {} = count(empid),",
+				"     columnNaming: '$N$V',",
+				"     lateral: true) ~> Gender",
+				"Gender sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Pivot_Gender'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> Target"
+			]
+		}
+	}
+}
