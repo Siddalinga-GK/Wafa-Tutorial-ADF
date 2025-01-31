@@ -1,0 +1,17 @@
+{
+	"name": "AzureSqlDatabase1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "LAPTOP-J1V197RA.database.net",
+			"database": "LAPTOP-J1V197RA\\siddu",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "LAPTOP-J1V197RA",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDc5OTFBMUM3LUUwQkQtNDQyNy1BNkE2LTNFNTAxNDBGNEJFRV85NTdkZjEwNy1mZDQ0LTQ4NzgtYjUxNy1kNmZjMDRlYzg5ZmQiDQp9"
+		}
+	}
+}
