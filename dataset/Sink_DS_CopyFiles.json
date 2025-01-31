@@ -1,0 +1,23 @@
+{
+	"name": "Sink_DS_CopyFiles",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_Wafa_Studies_Tutorial_01",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "copyoutput",
+				"fileSystem": "sawafastudies"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
