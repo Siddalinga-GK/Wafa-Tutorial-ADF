@@ -83,6 +83,38 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Delete')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"Filename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().Filename",
+							"type": "Expression"
+						},
+						"folderPath": "output1",
+						"fileSystem": "output"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -351,6 +383,34 @@
 					"location": {
 						"type": "AzureBlobFSLocation",
 						"fileSystem": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Source_DS_05')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_Wafa_Studies_Tutorial_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "output1",
+						"fileSystem": "output"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
@@ -785,26 +845,68 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/For Each Loop')]",
+			"name": "[concat(parameters('factoryName'), '/DeleteOld files')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "ForEach1",
-						"type": "ForEach",
+						"name": "Get Metadata of Older files",
+						"type": "GetMetadata",
 						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "Source_DS_05",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"modifiedDatetimeEnd": {
+									"value": "@adddays(utcNow(),-3)",
+									"type": "Expression"
+								},
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "ForEachfiles",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata of Older files",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"userProperties": [],
 						"typeProperties": {
 							"items": {
-								"value": "@pipeline().parameters.ListofFiles",
+								"value": "@activity('Get Metadata of Older files').output.childItems",
 								"type": "Expression"
 							},
 							"isSequential": true,
 							"activities": [
 								{
-									"name": "Copy data1",
-									"type": "Copy",
+									"name": "Deleteolderfiles",
+									"type": "Delete",
 									"dependsOn": [],
 									"policy": {
 										"timeout": "0.12:00:00",
@@ -815,57 +917,30 @@
 									},
 									"userProperties": [],
 									"typeProperties": {
-										"source": {
-											"type": "DelimitedTextSource",
-											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
-												"recursive": true,
-												"enablePartitionDiscovery": false
-											},
-											"formatSettings": {
-												"type": "DelimitedTextReadSettings"
-											}
-										},
-										"sink": {
-											"type": "DelimitedTextSink",
-											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
-											},
-											"formatSettings": {
-												"type": "DelimitedTextWriteSettings",
-												"quoteAllText": true,
-												"fileExtension": ".txt"
-											}
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "Source_DS_02",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "Target_DS_03",
+										"dataset": {
+											"referenceName": "Delete",
 											"type": "DatasetReference",
 											"parameters": {
-												"FilePath": {
-													"value": "@item()",
+												"Filename": {
+													"value": "@item().name",
 													"type": "Expression"
 												}
 											}
+										},
+										"logStorageSettings": {
+											"linkedServiceName": {
+												"referenceName": "LS_Wafa_Studies_Tutorial_01",
+												"type": "LinkedServiceReference"
+											},
+											"path": "output/output1"
+										},
+										"enableLogging": true,
+										"storeSettings": {
+											"type": "AzureBlobFSReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
 										}
-									]
+									}
 								}
 							]
 						}
@@ -874,169 +949,12 @@
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
-				"parameters": {
-					"ListofFiles": {
-						"type": "array",
-						"defaultValue": [
-							"output1",
-							"output2",
-							"output3"
-						]
-					}
-				},
-				"annotations": [],
-				"lastPublishTime": "2025-01-28T16:07:27Z"
+				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/Source_DS_02')]",
-				"[concat(variables('factoryId'), '/datasets/Target_DS_03')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/01_Join')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "DelimitedText1",
-								"type": "DatasetReference"
-							},
-							"name": "EmpData"
-						},
-						{
-							"dataset": {
-								"referenceName": "DeptDataset01",
-								"type": "DatasetReference"
-							},
-							"name": "DeptData"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "EmpDeptDataSet01",
-								"type": "DatasetReference"
-							},
-							"name": "EmpdeptData"
-						}
-					],
-					"transformations": [
-						{
-							"name": "EmpDeptJoin"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          empid as string,",
-						"          name as string,",
-						"          country as string,",
-						"          deptid as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> EmpData",
-						"source(output(",
-						"          deptid as string,",
-						"          deptname as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> DeptData",
-						"EmpData, DeptData join(EmpData@deptid == DeptData@deptid,",
-						"     joinType:'inner',",
-						"     matchType:'exact',",
-						"     ignoreSpaces: false,",
-						"     broadcast: 'auto')~> EmpDeptJoin",
-						"EmpDeptJoin sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     partitionFileNames:['EmpDept'],",
-						"     umask: 0022,",
-						"     preCommands: [],",
-						"     postCommands: [],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     mapColumn(",
-						"          empid,",
-						"          name,",
-						"          country,",
-						"          deptname",
-						"     ),",
-						"     partitionBy('hash', 1)) ~> EmpdeptData"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/DelimitedText1')]",
-				"[concat(variables('factoryId'), '/datasets/DeptDataset01')]",
-				"[concat(variables('factoryId'), '/datasets/EmpDeptDataSet01')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/02_Agg_Filter')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "Source_DS_03",
-								"type": "DatasetReference"
-							},
-							"name": "EmpData"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "Target_DS_04",
-								"type": "DatasetReference"
-							},
-							"name": "TotalEMP"
-						}
-					],
-					"transformations": [
-						{
-							"name": "TotalEmpbyDept"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          empid as string,",
-						"          name as string,",
-						"          gender as string,",
-						"          country as string,",
-						"          deptid as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> EmpData",
-						"EmpData aggregate(groupBy(deptid),",
-						"     empid = count(empid)) ~> TotalEmpbyDept",
-						"TotalEmpbyDept sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     partitionFileNames:['Totalempbydept'],",
-						"     umask: 0022,",
-						"     preCommands: [],",
-						"     postCommands: [],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     mapColumn(",
-						"          Dept_ID = deptid,",
-						"          Total_Employees = empid",
-						"     ),",
-						"     partitionBy('hash', 1)) ~> TotalEMP"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/Source_DS_03')]",
-				"[concat(variables('factoryId'), '/datasets/Target_DS_04')]"
+				"[concat(variables('factoryId'), '/datasets/Source_DS_05')]",
+				"[concat(variables('factoryId'), '/datasets/Delete')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_Wafa_Studies_Tutorial_01')]"
 			]
 		}
 	]
