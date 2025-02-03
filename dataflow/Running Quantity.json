@@ -16,6 +16,9 @@
 			"transformations": [
 				{
 					"name": "window1"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
@@ -28,9 +31,9 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> source1",
-				"source1 window(asc(deptid, true),",
-				"     Rangequntity = sum(toInteger(deptid)),",
-				"          column1 = sum(toInteger(empid))) ~> window1"
+				"derivedColumn1 window(asc(deptid, true),",
+				"     Rangequntity = sum(deptid)) ~> window1",
+				"source1 derive(deptid = toInteger(deptid)) ~> derivedColumn1"
 			]
 		}
 	}
