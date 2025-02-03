@@ -1,0 +1,80 @@
+{
+	"name": "LogDetails01",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Source_Log",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Sink_Log",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     ADFNmae as string,",
+				"     PipelineName as string,",
+				"     Status as string,",
+				"     RunID as string,",
+				"     TriggerName as string,",
+				"     Filename01 as string",
+				"}",
+				"source(output(",
+				"          Dummy as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 derive(ADFName = $ADFNmae,",
+				"          PipelinName = $PipelineName,",
+				"          Status = $Status,",
+				"          RunID = $RunID,",
+				"          TriggerName = $TriggerName) ~> derivedColumn1",
+				"derivedColumn1 select(mapColumn(",
+				"          ADFName,",
+				"          PipelinName,",
+				"          Status,",
+				"          RunID,",
+				"          TriggerName",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:[($Filename01)],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          ADFName,",
+				"          PipelinName,",
+				"          Status,",
+				"          RunID,",
+				"          TriggerName",
+				"     ),",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}
