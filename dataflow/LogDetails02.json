@@ -81,6 +81,13 @@
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          ADFName,",
+				"          PipelinName,",
+				"          Status,",
+				"          RunID,",
+				"          TriggerName",
+				"     ),",
 				"     partitionBy('hash', 1)) ~> sink1"
 			]
 		}
