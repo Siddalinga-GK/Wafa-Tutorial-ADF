@@ -12,7 +12,15 @@
 					"name": "source1"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "window1"
@@ -33,7 +41,20 @@
 				"     ignoreNoFilesFound: false) ~> source1",
 				"derivedColumn1 window(asc(deptid, true),",
 				"     Rangequntity = sum(deptid)) ~> window1",
-				"source1 derive(deptid = toInteger(deptid)) ~> derivedColumn1"
+				"source1 derive(deptid = toInteger(deptid)) ~> derivedColumn1",
+				"window1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          empid as string,",
+				"          name as string,",
+				"          country as string,",
+				"          deptid as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1"
 			]
 		}
 	}
