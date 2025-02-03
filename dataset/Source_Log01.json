@@ -1,0 +1,32 @@
+{
+	"name": "Source_Log01",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_Wafa_Studies_Tutorial_01",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Filename02": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().Filename02",
+					"type": "Expression"
+				},
+				"folderPath": "log",
+				"fileSystem": "output"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
